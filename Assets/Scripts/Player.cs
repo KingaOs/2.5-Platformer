@@ -20,24 +20,30 @@ public class Player : MonoBehaviour
     private UIManager uIManager;
     [SerializeField]
     private int _lives = 3;
+    private Vector3 _dir, _velocity;
+
+    private bool _canWallJump;
+    private Vector3 _wallSurfaceNormal;
 
     void Start()
     {
         _controller = GetComponent<CharacterController>();
 
         uIManager.UpdateLivesDisplay(_lives);
-      
+
     }
 
 
     void Update()
     {
         var horizontal = Input.GetAxis("Horizontal");
-        var dir = new Vector3(horizontal, 0, 0);
-        var velocity = dir * _speed;
+
 
         if (_controller.isGrounded)
         {
+            _canWallJump = false;
+            _dir = new Vector3(horizontal, 0, 0);
+            _velocity = _dir * _speed;
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 _yVelocity = _jumpHeight;
@@ -46,17 +52,24 @@ public class Player : MonoBehaviour
         }
         else
         {
-            if (Input.GetKeyDown(KeyCode.Space) && _doubleJump == true)
+            if (Input.GetKeyDown(KeyCode.Space) && _doubleJump == true && _canWallJump == false)
             {        
                     _yVelocity += _jumpHeight ;
                     _doubleJump = false;   
             }
-            _yVelocity -= _gravity;
+            if (Input.GetKeyDown(KeyCode.Space) &&  _canWallJump == true)
+            {
+                _yVelocity = _jumpHeight;
+                _velocity = _wallSurfaceNormal * _speed;
+            }
+
+
+                _yVelocity -= _gravity;
 
         }
 
-        velocity.y = _yVelocity;
-        _controller.Move(velocity * Time.deltaTime);
+        _velocity.y = _yVelocity;
+        _controller.Move(_velocity * Time.deltaTime);
     }
 
     public void AddCoins()
@@ -79,7 +92,17 @@ public class Player : MonoBehaviour
     public int coinCount()
     {
         return _coins;
-
     }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if(_controller.isGrounded == false && hit.transform.tag == "Wall")
+        {
+            Debug.DrawRay(hit.point, hit.normal, Color.blue);
+            _wallSurfaceNormal = hit.normal;
+            _canWallJump = true;
+        }
+    }
+
 
 }
