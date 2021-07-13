@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -17,14 +18,18 @@ public class Player : MonoBehaviour
     private int _coins;
     [SerializeField]
     private UIManager uIManager;
-
+    [SerializeField]
+    private int _lives = 3;
 
     void Start()
     {
         _controller = GetComponent<CharacterController>();
+
+        uIManager.UpdateLivesDisplay(_lives);
+      
     }
 
-    // Update is called once per frame
+
     void Update()
     {
         var horizontal = Input.GetAxis("Horizontal");
@@ -58,6 +63,23 @@ public class Player : MonoBehaviour
     {
         _coins++;
         uIManager.UpdateCoinDisplay(_coins);
+    }
+
+    public void Damage()
+    {
+        _lives--;
+        uIManager.UpdateLivesDisplay(_lives);
+
+        if(_lives < 1)
+        {
+            SceneManager.LoadScene(0);
+        }
+    }
+
+    public int coinCount()
+    {
+        return _coins;
+
     }
 
 }
